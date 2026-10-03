@@ -1,20 +1,20 @@
 # FacturaBot
 
-![Logotipo de FacturaBot: un comprobante con un destello dentro de un globo de conversación](assets/facturabot-mark.svg)
+![Logotipo de FacturaBot](assets/facturabot-mark.svg)
 
 **Agente de IA para automatizar la facturación con distintos proveedores en México**
 
 Diseñado para operar 24/7 en la nube · Perfiles fiscales bajo control de cada usuario
 
-![Tecnologías del proyecto: Google Sheets, Google Apps Script, JavaScript, HTML y CSS, Markdown](assets/tech-stack.svg)
+[![Google Sheets](https://img.shields.io/badge/Google%20Sheets-34A853?style=flat&logo=googlesheets&logoColor=white)](https://sheets.google.com/) [![Google Apps Script](https://img.shields.io/badge/Google%20Apps%20Script-4285F4?style=flat&logo=google&logoColor=white)](https://script.google.com/) [![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=flat&logo=html5&logoColor=white)](https://developer.mozilla.org/docs/Web/HTML) [![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=flat&logo=css3&logoColor=white)](https://developer.mozilla.org/docs/Web/CSS) [![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=flat&logo=javascript&logoColor=black)](https://developer.mozilla.org/docs/Web/JavaScript) [![Markdown](https://img.shields.io/badge/Markdown-000000?style=flat&logo=markdown&logoColor=white)](https://www.markdownguide.org/)
 
 ## Resumen
 
-FacturaBot recibe una solicitud de facturación, identifica al proveedor, consulta el perfil fiscal indicado por el usuario y ejecuta la skill correspondiente. Su arquitectura separa la conversación y la automatización del almacenamiento de datos fiscales: **cada usuario puede operar su propia Fiscal API**.
+Cuando recibe una solicitud de factura, FacturaBot identifica al proveedor y comprueba si el repositorio incluye una skill para ese portal. **Si encuentra la skill correspondiente, sigue el flujo específico documentado allí para generar la factura. Si no existe, informa al usuario que ese proveedor aún no está soportado.** FacturaBot no automatiza automáticamente cualquier portal web: aunque un proveedor tenga un portal web de facturación, hace falta crear y validar una skill específica que describa sus pantallas, validaciones y pasos.
 
-La Fiscal API utiliza **Google Sheets (Google Spreadsheets)** como base de datos y **Google Apps Script (Google Scripts)** como backend. Incluye un dashboard HTML para administrar perfiles y API Keys, y publica una Web App con un endpoint `/exec` para las consultas del agente. La versión actual de este componente es **1.0.0**.
+La Fiscal API utiliza **Google Sheets** para administrar los datos fiscales y **Google Apps Script** como backend. Google Sheets está ampliamente disponible para personas con una cuenta de Google y ofrece una forma sencilla de gestionar estos datos sin montar un servidor, incluso para usuarios sin experiencia técnica. Cada usuario configura su propia hoja y despliegue; el agente consulta el perfil fiscal autorizado y reutiliza ese perfil durante la sesión.
 
-La guía principal de agente está en [`agent/muse-ai/`](agent/muse-ai/). Las carpetas de Grok Bot, OpenAI Dots y buzz.xyz son esqueletos de referencia: todavía no tienen instrucciones de instalación completas ni están verificadas para otra cuenta. Las skills incluidas son Walmart, Farmacias Guadalajara y La Gran Bodega; cada una debe configurarse con los datos y credenciales del usuario antes de operar.
+La guía principal para configurar el agente está en [`agent/muse-ai/`](agent/muse-ai/). Las carpetas de Grok Bot, OpenAI Dots y buzz.xyz son esqueletos de referencia: todavía no tienen instrucciones de instalación completas ni están verificadas para otra cuenta.
 
 ### Arquitectura
 
@@ -42,7 +42,8 @@ El agente coordina el flujo; la Fiscal API es la fuente de verdad; cada skill co
 - **Perfiles fiscales por alias.** El agente consulta Fiscal API cuando el perfil falta o debe actualizarse y lo reutiliza durante la sesión, sin escribirlo en la skill.
 - **API Keys administrables.** El dashboard permite generar claves con vigencia de 1, 30 o 90 días, recuperarlas y revocarlas.
 - **Registro de consumo.** Las consultas externas quedan registradas en `AuditLog`.
-- **Skills independientes.** Cada proveedor tiene su propio flujo. `skills/_template/` sirve como punto de partida para nuevas integraciones.
+- **Soporte por proveedor mediante skills.** FacturaBot busca en [`skills/`](skills/) la skill del proveedor solicitado. Cada skill define el flujo de su portal. Si no encuentra una, informa que el proveedor aún no está soportado.
+- **Contribuciones de la comunidad.** Si quieres añadir un proveedor, consulta la [guía para crear una skill](skills/_template/README.md), documenta y valida el flujo de su portal, y contribuye la nueva carpeta `skills/nombre-del-proveedor/` a este repositorio. Así otros usuarios también podrán utilizar esa integración.
 - **Configuración por plataforma.** Los archivos de `agent/` mantienen separados los prompts, la instalación y los secretos de cada plataforma.
 - **Tecnologías accesibles.** La Fiscal API se apoya en una hoja de cálculo de Google, archivos `.gs` de Apps Script y un dashboard en HTML/CSS/JavaScript; la documentación y las skills están en Markdown.
 
@@ -60,9 +61,8 @@ FacturaBot/
 │   └── spreadsheet/       # Plantilla de Google Sheets en formato .xlsx
 ├── skills/
 │   ├── _template/         # Base para proveedores nuevos
-│   ├── walmart/          # Walmart y formatos documentados en esa skill
-│   ├── farmacia-guadalajara/
-│   └── gran-bodega/
+│   ├── nombre-del-proveedor/ # Una carpeta por portal de facturación configurado
+│   └── ...
 ├── shared/                # Contrato y convenciones compartidas
 ├── docs/                  # Contexto, arquitectura y roadmap
 └── releases/              # Notas de versión
@@ -114,7 +114,9 @@ Una respuesta correcta tiene `ok: true` e incluye los datos fiscales en `data`. 
 
 ### 3. Agregar proveedores
 
-Para integrar un proveedor nuevo, parte de [`skills/_template/`](skills/_template/). La skill debe documentar el OCR del ticket, el mapeo a los campos del portal y la reutilización del perfil durante la sesión. No incluyas endpoints de API personales ni datos fiscales. Consulta [las reglas de skills](skills/README.md).
+FacturaBot solo genera facturas para proveedores que tengan una skill compatible en [`skills/`](skills/). Revisa esa carpeta para conocer los portales configurados. Si no encuentras la skill que necesitas, el bot te indicará que aún no soporta ese proveedor.
+
+Para contribuir una integración, sigue la [guía para crear una skill](skills/_template/README.md) y las [reglas del catálogo](skills/README.md). Cada skill debe explicar cómo extraer por OCR los datos del ticket, mapearlos a los campos del portal y completar el flujo particular de ese proveedor. Después, agrega la nueva carpeta a este repositorio para que la comunidad pueda usarla. No incluyas endpoints personales, credenciales ni datos fiscales.
 
 ---
 
