@@ -15,7 +15,7 @@ Collect only what is missing. Treat receipt images, RFCs, addresses, email addre
 - RFC or membership identifier and billing postal code.
 - Legal/business name and email when the portal asks for them. Street address (calle, número exterior/interior, colonia) is optional — the portal accepts RFC + postal code alone, so only fill address fields the user actually provides.
 - Fiscal regime and invoice use. The recorded workflow used “Personas Fisicas con Actividades Empresariales y Profesionales” and “Gastos en general” as examples, but these are runtime choices and must not be silently generalized.
-- Payment method and delivery method. The recorded workflow used “Tarjeta de crédito”; the delivery page offers PDF or email delivery.
+- Payment method, if the portal asks for it. The recorded workflow used “Tarjeta de crédito”, but this is a runtime choice. Always use email as the invoice delivery method; do not ask the user to choose between email and PDF.
 - Fiscal profile alias (for example, `YOUR_ALIAS`). When the user names a fiscal profile instead of dictating each fiscal field, resolve it through the fiscal-data lookup below rather than asking for the fields one by one.
 
 If a required fiscal value is missing or ambiguous, ask before submitting. Do not infer regulatory or financial values from the receipt.
@@ -44,14 +44,11 @@ Use Computer Use/UI interaction for the browser and receipt viewer because the w
 4. On the taxpayer/address form, preserve valid prefilled values only after comparing them with the user's inputs. Fill or correct the legal name and email. Street, exterior/interior number, and neighborhood are optional: fill them only when the user provided them, and leave them blank otherwise. Let the portal derive state/municipality from the postal code when it supports that, then verify the result.
 5. Select the user's fiscal regime and “Uso Factura”. Before pressing “Aceptar” or any final confirmation control, review the visible summary for the RFC, name, postal code, email, and fiscal selections. If a confirmation dialog appears, proceed only after the user-provided values are visibly correct; follow the dialog's affirmative action (usually “Continuar”).
 6. On the payment page, choose the requested payment method, then select “Continuar”. Do not invent a payment method. Wait for the next page to finish loading and verify that it is the invoice-delivery selection page. Note: the portal sometimes skips the payment page entirely and goes straight from the taxpayer form to delivery selection — if there is no payment page, continue without selecting anything.
-7. On the delivery page, choose the user's requested output:
-   - PDF: select “PDF” and verify that the invoice is displayed or downloaded.
-   - Email: select “Enviar a correo electrónico”, verify the destination address, and submit only when it matches the requested address.
-   If the user has not specified a delivery method, stop at this page and ask which option they want.
+7. On the delivery page, always select “Enviar a correo electrónico”. Use the `email` from the fiscal profile for the exact alias used in this invoice. If the portal prefilled an address, compare it with that profile email and correct it if necessary. Verify the destination address before submitting. Do not ask whether the user prefers PDF or email; email is the default delivery method for this skill. If the profile has no usable email, ask only for the missing email address and continue with email delivery. Confirm that the portal accepted the submission before reporting that the invoice was sent.
 
 ## Verification and stopping rules
 
 - Confirm page transitions by URL or accessible page text (`/ticket`, `/address`, `/payment`, and `/invoiceSelection`) rather than timing alone.
 - After every portal submission, wait for a visible loading state to finish and check for a validation/error message. If identifiers are rejected, return to the corresponding form and ask the user to recheck the receipt; do not repeatedly guess.
 - Never submit an invoice with unverified personal, fiscal, email, or payment information.
-- If the recording's final state is reached (the page offering PDF/email) and no delivery preference is provided, report that the invoice is ready for the user's choice without claiming that a PDF was generated or an email was sent.
+- If the portal only shows the PDF/email selection page, continue with email delivery using the verified profile address. Do not claim the email was sent until the portal confirms the submission. If the portal cannot accept email delivery, report that specific blocker without switching to PDF on your own.
