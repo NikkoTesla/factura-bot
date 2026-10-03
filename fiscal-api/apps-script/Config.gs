@@ -4,7 +4,7 @@
 
 const APP = Object.freeze({
   NAME: 'API Fiscal Personal para Agentes de IA',
-  VERSION: '1.0.0',
+  VERSION: '1.0.1',
   API_KEY_PREFIX: 'api_',
   MAX_REQUESTS_PER_MINUTE: 60,
   VALID_EXPIRATION_DAYS: Object.freeze([1, 30, 90]),
@@ -126,7 +126,14 @@ function rowToObject_(headers, row) {
     const key = String(header || '').trim();
 
     if (key) {
-      object[key] = row[index];
+      const value = row[index];
+
+      // google.script.run no puede devolver objetos Date al dashboard.
+      // Convierte las celdas de fecha a ISO para que sus llamadas puedan
+      // serializar perfiles, API Keys y registros de actividad.
+      object[key] = value instanceof Date
+        ? value.toISOString()
+        : value;
     }
   });
 

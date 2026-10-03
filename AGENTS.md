@@ -79,7 +79,7 @@ Nombre actual del sistema fiscal:
 
 Versión actual:
 
-**1.0.0**
+**1.0.1**
 
 Autor:
 
@@ -216,7 +216,7 @@ Los secretos deben almacenarse en la bóveda o secret manager de la plataforma d
 
 ## Estado actual
 
-### Fiscal API v1.0.0
+### Fiscal API v1.0.1
 
 Incluye:
 
@@ -232,7 +232,7 @@ Incluye:
 - logo Nikko Tesla;
 - versión visible en dashboard.
 
-El frontend del dashboard se considera estable para v1.0.0 salvo correcciones de bugs.
+El frontend del dashboard se considera estable para v1.0.1 salvo correcciones de bugs.
 
 ---
 

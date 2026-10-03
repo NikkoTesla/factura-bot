@@ -1,6 +1,6 @@
 /**
  * API Fiscal Personal para Agentes de IA
- * Versión 1.0.0
+ * Versión 1.0.1
  * Creado por Nikko Tesla
  */
 

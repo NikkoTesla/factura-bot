@@ -120,4 +120,4 @@ Para contribuir una integración, sigue la [guía para crear una skill](skills/_
 
 ---
 
-**Fiscal API v1.0.0** · Creada por [Nikko Tesla](https://nikkotesla.github.io/)
+**Fiscal API v1.0.1** · Creada por [Nikko Tesla](https://nikkotesla.github.io/)
