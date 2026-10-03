@@ -564,26 +564,15 @@ function updateConnectionExample() {
       ? aliasElement.value
       : 'personal';
 
-  const selectedKey = getSelectedApiKey();
-
-  const apiKey =
-    selectedKey &&
-    selectedKey.api_key &&
-    isApiKeyActive(selectedKey)
-      ? selectedKey.api_key
-      : 'TU_API_KEY';
-
   const request = {
     action: 'getFiscalProfile',
-    alias: alias,
-    apiKey: apiKey
+    alias: alias
   };
 
-  requestElement.innerText = JSON.stringify(
-    request,
-    null,
-    2
-  );
+  requestElement.innerText =
+    'POST YOUR_ENDPOINT?apiKey=YOUR_API_KEY\n' +
+    'Content-Type: application/json\n\n' +
+    JSON.stringify(request, null, 2);
 }
 
 function copyRequestExample() {

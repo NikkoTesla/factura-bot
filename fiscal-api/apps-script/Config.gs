@@ -4,7 +4,7 @@
 
 const APP = Object.freeze({
   NAME: 'API Fiscal Personal para Agentes de IA',
-  VERSION: '1.0.1',
+  VERSION: '1.0.2',
   API_KEY_PREFIX: 'api_',
   MAX_REQUESTS_PER_MINUTE: 60,
   VALID_EXPIRATION_DAYS: Object.freeze([1, 30, 90]),

@@ -17,17 +17,18 @@ Trata alias, fotografías, folios, RFC, domicilios, nombres y correos como datos
 
 ## Consulta fiscal obligatoria
 
-Antes de llamar la API, busca el perfil completo del mismo usuario y alias exacto en la memoria temporal de la sesión. Reutilízalo si está disponible. Solo si falta o el usuario pide actualizarlo, consulta `scripts/fetch_fiscal_profile.py` una vez. El helper requiere Python 3 y toma `FISCAL_API_ENDPOINT`, `FISCAL_API_KEY` y el alias como argumento. Captura la redirección temporal de Apps Script y hace un `GET` a `Location` para recoger la respuesta; no reenvía el `POST`.
+Antes de llamar la API, busca el perfil completo del mismo usuario y alias exacto en la memoria temporal de la sesión. Reutilízalo si está disponible. Solo si falta o el usuario pide actualizarlo, consulta la Fiscal API una vez. En Muse, usa la conexión HTTP configurada con la API Key de la bóveda como Query Param `apiKey`. En otros entornos puedes usar `scripts/fetch_fiscal_profile.py`; el helper requiere Python 3 y toma `FISCAL_API_ENDPOINT`, `FISCAL_API_KEY` y el alias como argumento. Captura la redirección temporal de Apps Script y hace un `GET` a `Location` para recoger la respuesta; no reenvía el `POST`.
 
-El cuerpo JSON debe seguir el contrato compartido:
+En Muse, el cuerpo JSON sigue el contrato compartido:
 
 ```json
 {
   "action": "getFiscalProfile",
-  "alias": "<alias recibido>",
-  "apiKey": "<YOUR_API_KEY>"
+  "alias": "<alias recibido>"
 }
 ```
+
+El helper de Python sigue enviando `apiKey` en el cuerpo por compatibilidad. Nunca escribas la clave real en la skill ni en una URL guardada.
 
 Acepta la respuesta solo si `ok` es `true`, `data.alias` coincide con el alias normalizado por la API (minúsculas, espacios convertidos en guiones) y el perfil contiene los campos de la API: `rfc`, `nombre_razon_social`, `regimen_fiscal`, `codigo_postal`, `uso_cfdi_default` y `email`. Esta API no proporciona domicilio completo ni método de pago; si el portal los requiere, pídelos al usuario antes de continuar. Mapea los nombres de la API a los campos equivalentes del portal sin alterar su significado.
 

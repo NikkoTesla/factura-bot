@@ -52,17 +52,16 @@ Fiscal API está alojada en Google Sheets y Google Apps Script; sus respuestas p
 
 Al cambiar de usuario o al terminar la sesión, no reutilices ese perfil. No escribas datos fiscales en archivos, cachés locales, prompts, ejemplos, logs ni memoria permanente. Consulta [el contrato compartido](../../shared/api-contract.md) para los campos de respuesta.
 
-La conexión fiscal de cada usuario debe enviar un `POST` a su propio `YOUR_ENDPOINT` con `Content-Type: application/json` y el siguiente cuerpo. Los valores mostrados son marcadores de posición:
+La conexión fiscal de cada usuario debe enviar un `POST` a su propio `YOUR_ENDPOINT` con `Content-Type: application/json` y el siguiente cuerpo. En Muse, la bóveda agrega la API Key como Query Param llamado `apiKey`; los valores mostrados son marcadores de posición:
 
 ```json
 {
   "action": "getFiscalProfile",
-  "alias": "YOUR_ALIAS",
-  "apiKey": "YOUR_API_KEY"
+  "alias": "YOUR_ALIAS"
 }
 ```
 
-La API Key se incorpora desde la bóveda de la plataforma durante la ejecución. Una respuesta con `ok: true` contiene `data` con el perfil fiscal; si `ok` es `false`, informa el error y detén la facturación. Si Google Apps Script devuelve una redirección temporal para entregar el JSON, recoge la respuesta con `GET` a la dirección indicada; no reenvíes el `POST` a esa redirección.
+La solicitud en Muse toma la forma `POST YOUR_ENDPOINT?apiKey=YOUR_API_KEY`, con el valor real incorporado por la bóveda durante la ejecución. Otros clientes existentes pueden continuar enviando `apiKey` en el cuerpo. Una respuesta con `ok: true` contiene `data` con el perfil fiscal; si `ok` es `false`, informa el error y detén la facturación. Si Google Apps Script devuelve una redirección temporal para entregar el JSON, recoge la respuesta con `GET` a la dirección indicada; no reenvíes el `POST` ni la clave a esa redirección.
 
 ## 3. Completar el portal del proveedor
 

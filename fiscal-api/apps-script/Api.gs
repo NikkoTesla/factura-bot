@@ -22,9 +22,28 @@ function handleApiRequest_(e) {
       });
     }
 
+    if (!body || typeof body !== 'object' || Array.isArray(body)) {
+      return jsonResponse_({
+        ok: false,
+        error: 'invalid_json'
+      });
+    }
+
     const action = String(body.action || '').trim();
-    const apiKey = String(body.apiKey || '').trim();
+    const bodyApiKey = String(body.apiKey || '').trim();
+    const queryApiKey = String(
+      e.parameter && e.parameter.apiKey || ''
+    ).trim();
     const alias = normalizeAlias_(body.alias || '');
+
+    if (bodyApiKey && queryApiKey && bodyApiKey !== queryApiKey) {
+      return jsonResponse_({
+        ok: false,
+        error: 'conflicting_api_keys'
+      });
+    }
+
+    const apiKey = queryApiKey || bodyApiKey;
 
     if (!action) {
       return jsonResponse_({

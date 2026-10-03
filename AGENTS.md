@@ -79,7 +79,7 @@ Nombre actual del sistema fiscal:
 
 Versión actual:
 
-**1.0.1**
+**1.0.2**
 
 Autor:
 
@@ -136,7 +136,7 @@ provider-name/
 Petición:
 
 ```http
-POST <FISCAL_API_ENDPOINT>
+POST <FISCAL_API_ENDPOINT>?apiKey=YOUR_API_KEY
 Content-Type: application/json
 ```
 
@@ -145,10 +145,11 @@ Body:
 ```json
 {
   "action": "getFiscalProfile",
-  "alias": "personal",
-  "apiKey": "<SECRET>"
+  "alias": "YOUR_ALIAS"
 }
 ```
+
+Muse inyecta el valor de `apiKey` desde su bóveda como Query Param. La API conserva el envío de `apiKey` en el cuerpo JSON para clientes existentes.
 
 Respuesta exitosa:
 
@@ -216,7 +217,7 @@ Los secretos deben almacenarse en la bóveda o secret manager de la plataforma d
 
 ## Estado actual
 
-### Fiscal API v1.0.1
+### Fiscal API v1.0.2
 
 Incluye:
 
@@ -231,8 +232,9 @@ Incluye:
 - API Keys revocadas sin capacidad de copiar;
 - logo Nikko Tesla;
 - versión visible en dashboard.
+- API Key por Query Param `apiKey` para Muse y compatibilidad con el cuerpo JSON.
 
-El frontend del dashboard se considera estable para v1.0.1 salvo correcciones de bugs.
+El frontend del dashboard se considera estable para v1.0.2 salvo correcciones de bugs.
 
 ---
 

@@ -6,17 +6,16 @@ Antes de enviar una solicitud, el agente busca el perfil del usuario y alias cor
 
 ## Solicitud
 
-Envía una petición HTTP `POST` a `YOUR_ENDPOINT`, con `Content-Type: application/json` y este cuerpo:
+En la conexión HTTP de Muse, usa el método `POST` y la URL base `YOUR_ENDPOINT` (la Web App `/exec` de tu instalación). Configura un **Query Param** llamado exactamente `apiKey`, cuyo valor se obtiene de la API Key guardada en la bóveda. No escribas la clave real en la URL ni en el prompt. Usa `Content-Type: application/json` y este cuerpo:
 
 ```json
 {
   "action": "getFiscalProfile",
-  "alias": "YOUR_ALIAS",
-  "apiKey": "YOUR_API_KEY"
+  "alias": "YOUR_ALIAS"
 }
 ```
 
-La credencial debe incorporarse desde la bóveda de Muse durante la ejecución. El alias corresponde al perfil fiscal solicitado para la factura actual.
+La solicitud resultante tiene la forma `POST YOUR_ENDPOINT?apiKey=YOUR_API_KEY`, donde `YOUR_API_KEY` es un marcador para el valor que Muse agrega desde la bóveda durante la ejecución. El alias corresponde al perfil fiscal solicitado para la factura actual. La API también acepta `apiKey` en el cuerpo para clientes antiguos; si se envía en ambos lugares, los valores deben coincidir.
 
 ## Respuesta
 
@@ -24,6 +23,6 @@ Una respuesta con `ok: true` contiene `data` con `alias`, `tipo_persona`, `rfc`,
 
 Si `ok` es `false`, detén el flujo y comunica el error sin inventar datos. Los casos posibles se enumeran en [códigos de error](../../shared/error-codes.md). Una clave caducada o revocada se sustituye desde el dashboard fiscal del usuario y la bóveda de Muse.
 
-Google Apps Script puede devolver una redirección temporal al responder con JSON. El cliente HTTP de la integración debe recuperar el resultado mediante `GET` a la dirección temporal indicada en la respuesta; no debe volver a enviar el `POST` a esa dirección.
+Google Apps Script puede devolver una redirección temporal al responder con JSON. El cliente HTTP de la integración debe recuperar el resultado mediante `GET` a la dirección temporal indicada en la respuesta; no debe volver a enviar el `POST` ni agregar la API Key a esa dirección.
 
 Las skills deben consumir el perfil fiscal obtenido para la operación actual, sin almacenar datos fiscales particulares ni incorporar direcciones de implementaciones ajenas.

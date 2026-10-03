@@ -23,8 +23,8 @@ Cada usuario debe operar su propia hoja, implementación y API Key. No copies di
 
 1. Crea un agente en Muse con el nombre **FacturaBot**, o usa un agente existente dedicado a facturación.
 2. Adapta y pega las instrucciones de [system-prompt.md](system-prompt.md). Mantén la lógica general en el agente y los pasos del portal en la skill del proveedor.
-3. Configura la conexión a tu Fiscal API conforme a [api-connection.md](api-connection.md). El agente debe poder enviar una petición `getFiscalProfile` usando el alias solicitado.
-4. Guarda la API Key en la bóveda o mecanismo de credenciales disponible en tu cuenta de Muse. Sigue [secrets.md](secrets.md); no la pegues en las instrucciones del agente.
+3. Configura la conexión a tu Fiscal API conforme a [api-connection.md](api-connection.md): método `POST`, URL base `/exec`, `Content-Type: application/json` y cuerpo con `action: getFiscalProfile` y el alias solicitado.
+4. Guarda la API Key en la bóveda de Muse y vincúlala a un Query Param llamado exactamente `apiKey` para esa conexión. Sigue [secrets.md](secrets.md); no la pegues en la URL ni en las instrucciones del agente.
 
 ## 3. Instalar la primera skill
 

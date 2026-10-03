@@ -15,4 +15,4 @@ La plantilla y sus pestañas están descritas en [spreadsheet/README.md](spreads
 - Guarda la API Key en la bóveda de secretos del agente y configura la URL de tu propio despliegue en ese bot.
 - La API no está pensada para consultas de alto volumen. El agente debe reutilizar el perfil fiscal durante la sesión y consultar la API solo si no lo tiene en memoria o el usuario solicita actualizarlo.
 
-La versión actual del Apps Script es **1.0.1**. En esta versión, los lectores de perfiles, API Keys y actividad convierten fechas de Sheets a cadenas ISO antes de devolverlas al dashboard, para que `google.script.run` pueda serializar las respuestas.
+La versión actual del Apps Script es **1.0.2**. Acepta la API Key como Query Param `apiKey` para integraciones que la inyectan desde una bóveda, como Muse, y conserva el envío en el cuerpo JSON para clientes existentes. Incluye la corrección de serialización de fechas del dashboard introducida en v1.0.1.

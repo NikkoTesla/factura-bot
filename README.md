@@ -92,25 +92,24 @@ Cada usuario debe crear su propia hoja e implementación. La plantilla del repos
 
 1. Elige la carpeta de tu plataforma: [muse.ai](agent/muse-ai/), [Grok Bot](agent/grok-bot/), [OpenAI Dots](agent/openai-dots/) o [buzz.xyz](agent/buzz-xyz/).
 2. Usa el `system-prompt.md` de esa carpeta como base y carga las skills de los proveedores que vayas a utilizar.
-3. Configura en el agente la URL `/exec` de tu Fiscal API y guarda la API Key en la bóveda de la plataforma. `YOUR_ENDPOINT` y `YOUR_API_KEY` son los placeholders usados en los ejemplos; no pegues la clave en prompts, skills ni archivos del repositorio.
+3. Configura en el agente la URL `/exec` de tu Fiscal API y guarda la API Key en la bóveda de la plataforma. En Muse, configura la bóveda para agregarla como Query Param `apiKey` en el `POST`. `YOUR_ENDPOINT` y `YOUR_API_KEY` son los placeholders usados en los ejemplos; no pegues la clave real en la URL, prompts, skills ni archivos del repositorio.
 4. Sigue la [guía de Muse](agent/muse-ai/setup.md). Comprueba que la skill elegida recibe los datos del ticket por OCR y que el agente reutiliza el perfil fiscal en la sesión. Las otras carpetas de plataforma todavía no están listas para instalación.
 
 La consulta de perfiles sigue este contrato; los valores de ejemplo son **placeholders**:
 
 ```http
-POST YOUR_ENDPOINT
+POST YOUR_ENDPOINT?apiKey=YOUR_API_KEY
 Content-Type: application/json
 ```
 
 ```json
 {
   "action": "getFiscalProfile",
-  "alias": "YOUR_ALIAS",
-  "apiKey": "YOUR_API_KEY"
+  "alias": "YOUR_ALIAS"
 }
 ```
 
-Una respuesta correcta tiene `ok: true` e incluye los datos fiscales en `data`. Si la API devuelve un error, el agente no debe inventar ni reutilizar datos de otro perfil. Los campos y códigos de error están documentados en [`shared/`](shared/).
+Muse sustituye el marcador `YOUR_API_KEY` desde su bóveda durante la ejecución. Los clientes existentes también pueden enviar `apiKey` en el cuerpo JSON. Una respuesta correcta tiene `ok: true` e incluye los datos fiscales en `data`. Si la API devuelve un error, el agente no debe inventar ni reutilizar datos de otro perfil. Los campos y códigos de error están documentados en [`shared/`](shared/).
 
 ### 3. Agregar proveedores
 
@@ -120,4 +119,4 @@ Para contribuir una integración, sigue la [guía para crear una skill](skills/_
 
 ---
 
-**Fiscal API v1.0.1** · Creada por [Nikko Tesla](https://nikkotesla.github.io/)
+**Fiscal API v1.0.2** · Creada por [Nikko Tesla](https://nikkotesla.github.io/)

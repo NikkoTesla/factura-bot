@@ -37,7 +37,7 @@ No cambies los nombres de archivo, las pestañas ni sus encabezados. El manifies
 ## 4. Publicar la Web App
 
 1. En Apps Script, elige **Implementar → Nueva implementación** y selecciona **Aplicación web**.
-2. Para que el agente acceda a la hoja del propietario, la implementación debe ejecutarse como la cuenta que la publica. Elige el alcance de acceso que permita el agente: si no puede iniciar sesión en Google, puede requerir acceso anónimo; en ese caso la API Key del cuerpo de cada solicitud es la barrera de autenticación de la aplicación.
+2. Para que el agente acceda a la hoja del propietario, la implementación debe ejecutarse como la cuenta que la publica. Elige el alcance de acceso que permita el agente: si no puede iniciar sesión en Google, puede requerir acceso anónimo; en ese caso la API Key de cada solicitud es la barrera de autenticación de la aplicación. Muse puede enviarla como Query Param `apiKey` desde su bóveda; los clientes existentes pueden seguir enviándola en el cuerpo JSON.
 3. Selecciona **Implementar**, completa cualquier autorización y copia la URL que termina en `/exec`. Esa URL es privada de la instalación del usuario; guárdala en la configuración privada del bot, no en archivos del repositorio.
 
 Google puede limitar el acceso anónimo por políticas de Workspace o por la configuración de la cuenta. Si esa opción no está disponible, usa una cuenta/configuración compatible con el método de autenticación del agente. Revisa las opciones vigentes de acceso y ejecución en la [documentación oficial de Web Apps](https://developers.google.com/apps-script/guides/web).
@@ -46,6 +46,7 @@ Google puede limitar el acceso anónimo por políticas de Workspace o por la con
 
 - Abre la URL `/exec` en un navegador. El `GET` debe responder un JSON con `ok: true` e información del servicio.
 - Desde el agente, realiza una petición de prueba `getFiscalProfile` con un alias existente y la API Key de esa instalación, de acuerdo con [`shared/api-contract.md`](../../shared/api-contract.md).
+- En Muse, configura el endpoint `/exec` como URL base y la credencial de la bóveda como Query Param `apiKey`; deja `action` y `alias` en el cuerpo JSON. No pegues la clave real en una URL guardada.
 - Confirma que el resultado tiene `ok: true` y que `data.alias` corresponde al alias consultado. Después revisa que `AuditLog` registre el consumo. No pegues la API Key en prompts, terminales compartidas ni documentos.
 
 Apps Script puede contestar el `POST` con una redirección temporal para recuperar el JSON. El cliente debe leer `Location` y hacer un `GET` a esa dirección; no debe volver a enviar el `POST` allí.

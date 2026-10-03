@@ -35,6 +35,13 @@
 
 ---
 
+## v1.0.1 y v1.0.2 — Mantenimiento de Fiscal API
+
+- v1.0.1: serialización de fechas de Sheets para la lectura del dashboard.
+- v1.0.2: autenticación mediante Query Param `apiKey` desde la bóveda de Muse, manteniendo compatibilidad con los clientes que envían la clave en el cuerpo JSON.
+
+---
+
 ## Próximas etapas
 
 - Completar y validar configuración de FacturaBot para Grok Bot, OpenAI Dots y buzz.xyz.
