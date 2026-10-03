@@ -1,0 +1,810 @@
+<script>
+
+let profiles = [];
+let apiKeys = [];
+let generatedApiKey = '';
+let endpointUrl = '';
+let toastTimer = null;
+
+document.addEventListener(
+  'DOMContentLoaded',
+  function () {
+    loadProfiles();
+    loadKeys();
+    loadAudit();
+    loadEndpoint();
+  }
+);
+
+function showSection(name, button) {
+  document
+    .querySelectorAll('.section')
+    .forEach(function (section) {
+      section.classList.add('hidden');
+    });
+
+  const target = document.getElementById('section-' + name);
+
+  if (target) {
+    target.classList.remove('hidden');
+  }
+
+  document
+    .querySelectorAll('.nav')
+    .forEach(function (nav) {
+      nav.classList.remove('active');
+    });
+
+  if (button) {
+    button.classList.add('active');
+  }
+
+  if (name === 'activity') {
+    loadAudit();
+  }
+
+  if (name === 'connection') {
+    populateConnectionControls();
+    updateConnectionExample();
+  }
+}
+
+function loadProfiles() {
+  google.script.run
+    .withSuccessHandler(function (data) {
+      profiles = Array.isArray(data) ? data : [];
+      renderProfiles();
+      populateConnectionControls();
+      updateConnectionExample();
+    })
+    .withFailureHandler(showError)
+    .listProfiles();
+}
+
+function renderProfiles() {
+  const container = document.getElementById('profilesList');
+
+  if (!container) {
+    return;
+  }
+
+  if (!profiles.length) {
+    container.innerHTML =
+      '<div class="empty">' +
+      'No tienes perfiles fiscales registrados.' +
+      '</div>';
+    return;
+  }
+
+  container.innerHTML = profiles
+    .map(function (profile) {
+      return `
+        <div class="card">
+          <div class="card-title">
+            <strong>${escapeHtml(profile.alias)}</strong>
+            <span class="badge">Activo</span>
+          </div>
+
+          <p>${escapeHtml(profile.nombre_razon_social)}</p>
+          <p>RFC: ${escapeHtml(profile.rfc)}</p>
+          <p>Régimen: ${escapeHtml(profile.regimen_fiscal)}</p>
+
+          <div style="margin-top:14px">
+            <button
+              onclick="editProfile('${escapeJsString(profile.id)}')"
+            >
+              Editar
+            </button>
+
+            <button
+              class="danger"
+              onclick="deactivateProfileUi('${escapeJsString(profile.id)}')"
+            >
+              Desactivar
+            </button>
+          </div>
+        </div>
+      `;
+    })
+    .join('');
+}
+
+function openNewProfile() {
+  document.getElementById('profileModalTitle').innerText = 'Nuevo perfil';
+  document.getElementById('profileId').value = '';
+  document.getElementById('alias').value = '';
+  document.getElementById('tipoPersona').value = 'fisica';
+  document.getElementById('rfc').value = '';
+  document.getElementById('nombreRazonSocial').value = '';
+  document.getElementById('regimenFiscal').value = '';
+  document.getElementById('codigoPostal').value = '';
+  document.getElementById('usoCfdi').value = '';
+  document.getElementById('email').value = '';
+
+  document
+    .getElementById('profileModal')
+    .classList
+    .remove('hidden');
+}
+
+function editProfile(id) {
+  const profile = profiles.find(function (item) {
+    return String(item.id) === String(id);
+  });
+
+  if (!profile) {
+    showToast('No se encontró el perfil.');
+    return;
+  }
+
+  document.getElementById('profileModalTitle').innerText = 'Editar perfil';
+  document.getElementById('profileId').value = profile.id || '';
+  document.getElementById('alias').value = profile.alias || '';
+  document.getElementById('tipoPersona').value = profile.tipo_persona || 'fisica';
+  document.getElementById('rfc').value = profile.rfc || '';
+  document.getElementById('nombreRazonSocial').value = profile.nombre_razon_social || '';
+  document.getElementById('regimenFiscal').value = profile.regimen_fiscal || '';
+  document.getElementById('codigoPostal').value = profile.codigo_postal || '';
+  document.getElementById('usoCfdi').value = profile.uso_cfdi_default || '';
+  document.getElementById('email').value = profile.email || '';
+
+  document
+    .getElementById('profileModal')
+    .classList
+    .remove('hidden');
+}
+
+function closeProfileModal() {
+  document
+    .getElementById('profileModal')
+    .classList
+    .add('hidden');
+}
+
+function saveProfile() {
+  const id = document.getElementById('profileId').value;
+
+  const data = {
+    alias: document.getElementById('alias').value,
+    tipo_persona: document.getElementById('tipoPersona').value,
+    rfc: document.getElementById('rfc').value,
+    nombre_razon_social: document.getElementById('nombreRazonSocial').value,
+    regimen_fiscal: document.getElementById('regimenFiscal').value,
+    codigo_postal: document.getElementById('codigoPostal').value,
+    uso_cfdi_default: document.getElementById('usoCfdi').value,
+    email: document.getElementById('email').value
+  };
+
+  const runner = google.script.run
+    .withSuccessHandler(function () {
+      closeProfileModal();
+      loadProfiles();
+    })
+    .withFailureHandler(showError);
+
+  if (id) {
+    runner.updateProfile(id, data);
+  } else {
+    runner.createProfile(data);
+  }
+}
+
+function deactivateProfileUi(id) {
+  if (!confirm('¿Quieres desactivar este perfil?')) {
+    return;
+  }
+
+  google.script.run
+    .withSuccessHandler(function () {
+      loadProfiles();
+    })
+    .withFailureHandler(showError)
+    .deactivateProfile(id);
+}
+
+function loadKeys() {
+  google.script.run
+    .withSuccessHandler(function (data) {
+      apiKeys = Array.isArray(data) ? data : [];
+      renderKeys();
+      populateConnectionControls();
+      updateConnectionExample();
+    })
+    .withFailureHandler(showError)
+    .listApiKeys();
+}
+
+function isApiKeyActive(key) {
+  if (!key) {
+    return false;
+  }
+
+  const active =
+    key.active === true ||
+    String(key.active).toLowerCase() === 'true';
+
+  if (!active) {
+    return false;
+  }
+
+  if (key.revoked_at) {
+    return false;
+  }
+
+  const expiration = new Date(key.expires_at);
+
+  if (isNaN(expiration.getTime())) {
+    return false;
+  }
+
+  return expiration.getTime() > Date.now();
+}
+
+function renderKeys() {
+  const container = document.getElementById('keysList');
+
+  if (!container) {
+    return;
+  }
+
+  if (!apiKeys.length) {
+    container.innerHTML =
+      '<div class="empty">No existen API Keys.</div>';
+    return;
+  }
+
+  const rows = apiKeys
+    .map(function (key) {
+      const active = isApiKeyActive(key);
+      const rowClass = active ? '' : 'revoked-row';
+      const status = active ? 'Activa' : 'Revocada';
+
+      const copyButton = active
+        ? `
+          <button
+            onclick="copyStoredApiKeyById('${escapeJsString(key.id)}')"
+          >
+            Copiar
+          </button>
+        `
+        : `
+          <button
+            disabled
+            title="API Key revocada"
+          >
+            Copiar
+          </button>
+        `;
+
+      const revokeButton = active
+        ? `
+          <button
+            class="danger"
+            onclick="revokeKey('${escapeJsString(key.id)}')"
+          >
+            Revocar
+          </button>
+        `
+        : '';
+
+      return `
+        <tr class="${rowClass}">
+          <td>${escapeHtml(key.nombre)}</td>
+
+          <td>
+            <code>
+              ${escapeHtml(key.key_prefix)}••••••••
+            </code>
+          </td>
+
+          <td>${formatDate(key.expires_at)}</td>
+
+          <td>
+            ${
+              key.last_used_at
+                ? formatDate(key.last_used_at)
+                : 'Nunca'
+            }
+          </td>
+
+          <td>${status}</td>
+
+          <td>
+            ${copyButton}
+            ${revokeButton}
+          </td>
+        </tr>
+      `;
+    })
+    .join('');
+
+  container.innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>API Key</th>
+          <th>Expira</th>
+          <th>Último uso</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        ${rows}
+      </tbody>
+    </table>
+  `;
+}
+
+function openNewKey() {
+  document.getElementById('keyName').value = '';
+  document.getElementById('expirationDays').value = '30';
+
+  document
+    .getElementById('keyModal')
+    .classList
+    .remove('hidden');
+}
+
+function closeKeyModal() {
+  document
+    .getElementById('keyModal')
+    .classList
+    .add('hidden');
+}
+
+function generateKey() {
+  const data = {
+    nombre: document.getElementById('keyName').value,
+    expirationDays: Number(
+      document.getElementById('expirationDays').value
+    )
+  };
+
+  google.script.run
+    .withSuccessHandler(function (result) {
+      closeKeyModal();
+
+      generatedApiKey =
+        result && result.apiKey
+          ? result.apiKey
+          : '';
+
+      document.getElementById('generatedKey').innerText = generatedApiKey;
+
+      document
+        .getElementById('keyResultModal')
+        .classList
+        .remove('hidden');
+
+      loadKeys();
+    })
+    .withFailureHandler(showError)
+    .createApiKey(data);
+}
+
+function copyGeneratedKey() {
+  copyText(
+    generatedApiKey,
+    'API Key copiada.'
+  );
+}
+
+function copyStoredApiKeyById(id) {
+  const key = apiKeys.find(function (item) {
+    return String(item.id) === String(id);
+  });
+
+  if (!key || !key.api_key) {
+    showToast('No se encontró la API Key.');
+    return;
+  }
+
+  if (!isApiKeyActive(key)) {
+    return;
+  }
+
+  copyText(
+    key.api_key,
+    'API Key copiada.'
+  );
+}
+
+function closeKeyResult() {
+  generatedApiKey = '';
+  document.getElementById('generatedKey').innerText = '';
+
+  document
+    .getElementById('keyResultModal')
+    .classList
+    .add('hidden');
+}
+
+function revokeKey(id) {
+  if (
+    !confirm(
+      'Esta API Key dejará de funcionar inmediatamente. ¿Continuar?'
+    )
+  ) {
+    return;
+  }
+
+  google.script.run
+    .withSuccessHandler(function () {
+      loadKeys();
+    })
+    .withFailureHandler(showError)
+    .revokeApiKey(id);
+}
+
+function loadEndpoint() {
+  google.script.run
+    .withSuccessHandler(function (url) {
+      endpointUrl = url || '';
+
+      const input = document.getElementById('endpointUrl');
+
+      if (input) {
+        input.value = endpointUrl;
+      }
+
+      updateConnectionExample();
+    })
+    .withFailureHandler(showError)
+    .getWebAppUrl();
+}
+
+function populateConnectionControls() {
+  const keySelect = document.getElementById('connectionApiKey');
+  const aliasSelect = document.getElementById('connectionAlias');
+
+  if (!keySelect || !aliasSelect) {
+    return;
+  }
+
+  const previousKey = keySelect.value;
+  const previousAlias = aliasSelect.value;
+
+  const activeKeys = apiKeys.filter(function (key) {
+    return isApiKeyActive(key);
+  });
+
+  if (activeKeys.length) {
+    keySelect.innerHTML = activeKeys
+      .map(function (key) {
+        return `
+          <option value="${escapeHtmlAttribute(key.id)}">
+            ${escapeHtml(key.nombre)}
+          </option>
+        `;
+      })
+      .join('');
+  } else {
+    keySelect.innerHTML =
+      '<option value="">No hay API Keys activas</option>';
+  }
+
+  if (profiles.length) {
+    aliasSelect.innerHTML = profiles
+      .map(function (profile) {
+        return `
+          <option value="${escapeHtmlAttribute(profile.alias)}">
+            ${escapeHtml(profile.alias)}
+          </option>
+        `;
+      })
+      .join('');
+  } else {
+    aliasSelect.innerHTML =
+      '<option value="">No hay perfiles</option>';
+  }
+
+  const previousKeyStillExists = activeKeys.some(function (item) {
+    return String(item.id) === String(previousKey);
+  });
+
+  if (previousKey && previousKeyStillExists) {
+    keySelect.value = previousKey;
+  }
+
+  const previousAliasStillExists = profiles.some(function (item) {
+    return String(item.alias) === String(previousAlias);
+  });
+
+  if (previousAlias && previousAliasStillExists) {
+    aliasSelect.value = previousAlias;
+  }
+}
+
+function getSelectedApiKey() {
+  const select = document.getElementById('connectionApiKey');
+
+  if (!select) {
+    return null;
+  }
+
+  return (
+    apiKeys.find(function (item) {
+      return String(item.id) === String(select.value);
+    }) || null
+  );
+}
+
+function copySelectedApiKey() {
+  const key = getSelectedApiKey();
+
+  if (
+    !key ||
+    !key.api_key ||
+    !isApiKeyActive(key)
+  ) {
+    showToast('Selecciona una API Key activa.');
+    return;
+  }
+
+  copyText(
+    key.api_key,
+    'API Key copiada.'
+  );
+}
+
+function updateConnectionExample() {
+  const requestElement = document.getElementById('requestExample');
+
+  if (!requestElement) {
+    return;
+  }
+
+  const aliasElement = document.getElementById('connectionAlias');
+
+  const alias =
+    aliasElement && aliasElement.value
+      ? aliasElement.value
+      : 'personal';
+
+  const selectedKey = getSelectedApiKey();
+
+  const apiKey =
+    selectedKey &&
+    selectedKey.api_key &&
+    isApiKeyActive(selectedKey)
+      ? selectedKey.api_key
+      : 'TU_API_KEY';
+
+  const request = {
+    action: 'getFiscalProfile',
+    alias: alias,
+    apiKey: apiKey
+  };
+
+  requestElement.innerText = JSON.stringify(
+    request,
+    null,
+    2
+  );
+}
+
+function copyRequestExample() {
+  const element = document.getElementById('requestExample');
+
+  if (!element) {
+    return;
+  }
+
+  copyText(
+    element.innerText,
+    'Request copiado.'
+  );
+}
+
+function copyField(id) {
+  const element = document.getElementById(id);
+
+  if (!element || !element.value) {
+    showToast('No hay ningún valor para copiar.');
+    return;
+  }
+
+  copyText(
+    element.value,
+    'Copiado.'
+  );
+}
+
+function loadAudit() {
+  google.script.run
+    .withSuccessHandler(function (records) {
+      renderAudit(
+        Array.isArray(records)
+          ? records
+          : []
+      );
+    })
+    .withFailureHandler(showError)
+    .listAuditLog(30);
+}
+
+function renderAudit(records) {
+  const container = document.getElementById('auditList');
+
+  if (!container) {
+    return;
+  }
+
+  if (!records || !records.length) {
+    container.innerHTML =
+      '<div class="empty">Todavía no hay actividad.</div>';
+    return;
+  }
+
+  const rows = records
+    .map(function (item) {
+      return `
+        <tr>
+          <td>${formatDate(item.timestamp)}</td>
+          <td>${escapeHtml(item.api_key_id)}</td>
+          <td>${escapeHtml(item.action)}</td>
+          <td>${escapeHtml(item.alias)}</td>
+          <td>${escapeHtml(item.result)}</td>
+        </tr>
+      `;
+    })
+    .join('');
+
+  container.innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>API Key</th>
+          <th>Acción</th>
+          <th>Alias</th>
+          <th>Resultado</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        ${rows}
+      </tbody>
+    </table>
+  `;
+}
+
+function showToast(message) {
+  const toast = document.getElementById('toast');
+
+  if (!toast) {
+    return;
+  }
+
+  toast.innerText = message;
+  toast.classList.add('show');
+
+  if (toastTimer) {
+    clearTimeout(toastTimer);
+  }
+
+  toastTimer = setTimeout(
+    function () {
+      toast.classList.remove('show');
+    },
+    1800
+  );
+}
+
+function copyText(text, successMessage) {
+  if (!text) {
+    showToast('No hay ningún valor para copiar.');
+    return;
+  }
+
+  if (
+    navigator.clipboard &&
+    navigator.clipboard.writeText
+  ) {
+    navigator.clipboard
+      .writeText(text)
+      .then(function () {
+        showToast(
+          successMessage || 'Copiado.'
+        );
+      })
+      .catch(function () {
+        fallbackCopy(
+          text,
+          successMessage
+        );
+      });
+  } else {
+    fallbackCopy(
+      text,
+      successMessage
+    );
+  }
+}
+
+function fallbackCopy(text, successMessage) {
+  const textarea = document.createElement('textarea');
+
+  textarea.value = text;
+  textarea.style.position = 'fixed';
+  textarea.style.left = '-9999px';
+  textarea.style.top = '-9999px';
+  textarea.style.opacity = '0';
+  textarea.style.pointerEvents = 'none';
+
+  document.body.appendChild(textarea);
+  textarea.focus();
+  textarea.select();
+
+  try {
+    const success = document.execCommand('copy');
+
+    if (success) {
+      showToast(
+        successMessage || 'Copiado.'
+      );
+    } else {
+      showToast('No se pudo copiar.');
+    }
+  } catch (error) {
+    console.error(error);
+    showToast('No se pudo copiar.');
+  }
+
+  document.body.removeChild(textarea);
+}
+
+function formatDate(value) {
+  if (!value) {
+    return '';
+  }
+
+  const date = new Date(value);
+
+  if (isNaN(date.getTime())) {
+    return '';
+  }
+
+  return date.toLocaleString('es-MX');
+}
+
+function escapeHtml(value) {
+  return String(
+    value == null ? '' : value
+  )
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function escapeHtmlAttribute(value) {
+  return escapeHtml(value);
+}
+
+function escapeJsString(value) {
+  return String(
+    value == null ? '' : value
+  )
+    .replace(/\\/g, '\\\\')
+    .replace(/'/g, "\\'")
+    .replace(/\r/g, '\\r')
+    .replace(/\n/g, '\\n');
+}
+
+function showError(error) {
+  console.error(error);
+
+  const message =
+    error && error.message
+      ? error.message
+      : String(error);
+
+  alert(message);
+}
+
+</script>

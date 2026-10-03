@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 112 112" role="img" aria-labelledby="title desc">
+  <title id="title">FacturaBot</title>
+  <desc id="desc">Comprobante con un destello dentro de un globo de conversación.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0f766e"/>
+      <stop offset="1" stop-color="#2563eb"/>
+    </linearGradient>
+  </defs>
+  <rect x="4" y="4" width="104" height="104" rx="27" fill="url(#background)"/>
+  <path d="M27 33c0-7 6-13 13-13h33c7 0 13 6 13 13v42c0 7-6 13-13 13H48L33 98v-12c-4-2-6-6-6-11V33Z" fill="#fff"/>
+  <path d="M42 42h19M42 52h25M42 62h17" stroke="#0f766e" stroke-width="4" stroke-linecap="round"/>
+  <path d="m76 56 2.6 7.4L86 66l-7.4 2.6L76 76l-2.6-7.4L66 66l7.4-2.6L76 56Z" fill="#f59e0b"/>
+</svg>

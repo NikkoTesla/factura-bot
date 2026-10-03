@@ -1,0 +1,25 @@
+# Secrets
+.env
+.env.*
+*.secret
+secrets.*
+!agent/muse-ai/secrets.md
+credentials.*
+agent/muse-ai/facturabot-setup.md
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/
+
+# Temporary
+tmp/
+temp/
+*.log
+
+# Local/private data
+private/
+local-data/

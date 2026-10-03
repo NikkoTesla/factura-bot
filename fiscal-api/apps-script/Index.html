@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <base target="_top">
+  <?!= include('Styles'); ?>
+</head>
+
+<body>
+
+<div class="app">
+
+  <header>
+
+    <div class="header-left">
+
+      <a
+        href="https://nikkotesla.github.io/"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="logo-link"
+      >
+        <img
+          src="https://nikkotesla.github.io/NikkoTesla-logo-transparent.png"
+          alt="Nikko Tesla"
+          class="brand-logo"
+        >
+      </a>
+
+      <div class="header-title">
+
+        <h1>
+          API Fiscal Personal para Agentes de IA
+        </h1>
+
+        <p>
+          Administra tus perfiles fiscales y tus API Keys.
+        </p>
+
+      </div>
+
+    </div>
+
+
+    <div class="brand-block">
+
+      <div class="brand">
+        Creado por
+        <a
+          href="https://nikkotesla.github.io/"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <strong>Nikko Tesla</strong>
+        </a>
+      </div>
+
+      <div class="version">
+        Versión 1.0.0
+      </div>
+
+    </div>
+
+  </header>
+
+
+  <nav>
+
+    <button
+      class="nav active"
+      onclick="showSection('profiles', this)"
+    >
+      Perfiles
+    </button>
+
+    <button
+      class="nav"
+      onclick="showSection('keys', this)"
+    >
+      API Keys
+    </button>
+
+    <button
+      class="nav"
+      onclick="showSection('connection', this)"
+    >
+      Conexión API
+    </button>
+
+    <button
+      class="nav"
+      onclick="showSection('activity', this)"
+    >
+      Actividad
+    </button>
+
+  </nav>
+
+
+  <section
+    id="section-profiles"
+    class="section"
+  >
+
+    <div class="section-header">
+
+      <div>
+        <h2>Perfiles fiscales</h2>
+        <p>
+          Personas físicas o morales disponibles para tus agentes.
+        </p>
+      </div>
+
+      <button
+        class="primary"
+        onclick="openNewProfile()"
+      >
+        + Nuevo perfil
+      </button>
+
+    </div>
+
+    <div
+      id="profilesList"
+      class="cards"
+    >
+      Cargando...
+    </div>
+
+  </section>
+
+
+  <section
+    id="section-keys"
+    class="section hidden"
+  >
+
+    <div class="section-header">
+
+      <div>
+        <h2>API Keys</h2>
+        <p>
+          Credenciales temporales para tus agentes.
+        </p>
+      </div>
+
+      <button
+        class="primary"
+        onclick="openNewKey()"
+      >
+        + Nueva API Key
+      </button>
+
+    </div>
+
+    <div id="keysList">
+      Cargando...
+    </div>
+
+  </section>
+
+
+  <section
+    id="section-connection"
+    class="section hidden"
+  >
+
+    <div class="section-header">
+
+      <div>
+        <h2>Conexión API</h2>
+        <p>
+          Información necesaria para conectar un agente.
+        </p>
+      </div>
+
+    </div>
+
+
+    <div class="card">
+
+      <label>
+        Endpoint
+      </label>
+
+      <div class="copy-row">
+
+        <input
+          id="endpointUrl"
+          readonly
+          placeholder="URL del Web App"
+        >
+
+        <button
+          onclick="copyField('endpointUrl')"
+        >
+          Copiar
+        </button>
+
+      </div>
+
+
+      <label>
+        API Key
+      </label>
+
+      <select
+        id="connectionApiKey"
+        onchange="updateConnectionExample()"
+      >
+      </select>
+
+      <div class="copy-button-row">
+
+        <button
+          class="primary"
+          onclick="copySelectedApiKey()"
+        >
+          Copiar API Key
+        </button>
+
+      </div>
+
+
+      <label>
+        Alias
+      </label>
+
+      <select
+        id="connectionAlias"
+        onchange="updateConnectionExample()"
+      >
+      </select>
+
+
+      <label>
+        Request de ejemplo
+      </label>
+
+      <div class="request-box">
+
+        <pre id="requestExample"></pre>
+
+        <button
+          onclick="copyRequestExample()"
+        >
+          Copiar request
+        </button>
+
+      </div>
+
+
+      <p class="helper">
+        El cliente HTTP debe permitir redirecciones de Google Apps Script.
+      </p>
+
+    </div>
+
+  </section>
+
+
+  <section
+    id="section-activity"
+    class="section hidden"
+  >
+
+    <div class="section-header">
+
+      <div>
+        <h2>Actividad</h2>
+        <p>
+          Últimas consultas realizadas mediante la API.
+        </p>
+      </div>
+
+    </div>
+
+    <div id="auditList">
+      Cargando...
+    </div>
+
+  </section>
+
+</div>
+
+
+<div
+  id="profileModal"
+  class="modal hidden"
+>
+
+  <div class="modal-card">
+
+    <h2 id="profileModalTitle">
+      Nuevo perfil
+    </h2>
+
+    <input
+      type="hidden"
+      id="profileId"
+    >
+
+    <label>Alias</label>
+    <input id="alias" placeholder="personal">
+
+    <label>Tipo de persona</label>
+    <select id="tipoPersona">
+      <option value="fisica">Persona física</option>
+      <option value="moral">Persona moral</option>
+    </select>
+
+    <label>RFC</label>
+    <input id="rfc">
+
+    <label>Nombre / razón social</label>
+    <input id="nombreRazonSocial">
+
+    <label>Régimen fiscal</label>
+    <input id="regimenFiscal" placeholder="612">
+
+    <label>Código postal</label>
+    <input id="codigoPostal">
+
+    <label>Uso CFDI predeterminado</label>
+    <input id="usoCfdi" placeholder="G03">
+
+    <label>Email</label>
+    <input id="email" type="email">
+
+    <div class="modal-actions">
+
+      <button onclick="closeProfileModal()">
+        Cancelar
+      </button>
+
+      <button
+        class="primary"
+        onclick="saveProfile()"
+      >
+        Guardar
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<div
+  id="keyModal"
+  class="modal hidden"
+>
+
+  <div class="modal-card">
+
+    <h2>Nueva API Key</h2>
+
+    <label>Nombre</label>
+    <input
+      id="keyName"
+      placeholder="ChatGPT Facturación"
+    >
+
+    <label>Vigencia</label>
+    <select id="expirationDays">
+      <option value="1">1 día</option>
+      <option value="30" selected>30 días</option>
+      <option value="90">90 días</option>
+    </select>
+
+    <div class="modal-actions">
+
+      <button onclick="closeKeyModal()">
+        Cancelar
+      </button>
+
+      <button
+        class="primary"
+        onclick="generateKey()"
+      >
+        Generar API Key
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<div
+  id="keyResultModal"
+  class="modal hidden"
+>
+
+  <div class="modal-card">
+
+    <h2>API Key creada</h2>
+
+    <p>Tu API Key está lista.</p>
+
+    <div
+      id="generatedKey"
+      class="secret"
+    >
+    </div>
+
+    <button
+      class="primary full"
+      onclick="copyGeneratedKey()"
+    >
+      Copiar API Key
+    </button>
+
+    <button
+      class="full"
+      onclick="closeKeyResult()"
+    >
+      Cerrar
+    </button>
+
+  </div>
+
+</div>
+
+
+<div
+  id="toast"
+  class="toast"
+  role="status"
+  aria-live="polite"
+>
+</div>
+
+
+<?!= include('App'); ?>
+
+</body>
+</html>

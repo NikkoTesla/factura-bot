@@ -1,0 +1,3 @@
+interface:
+  display_name: "Gran Bodega Invoice From Receipt"
+  short_description: "Invoice a La Gran Bodega receipt from a scan"
